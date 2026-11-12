@@ -7,245 +7,148 @@ import {
   View,
 } from "react-native";
 
-const App = () => {
-  const [input, setInput] = useState(""); // User input
+// Change any color here
+const COLORS = {
+  background: "#0F172A",
+  display: "#1E293B",
+  displayText: "#F8FAFC",
+  number: "#334155",
+  operator: "#6366F1",
+  clear: "#EF4444",
+  equal: "#22C55E",
+  buttonText: "#FFFFFF",
+};
 
-  // Handle button press to append input
-  const handleButtonPress = (value: any) => {
-    setInput((prev) => prev + value);
-  };
+// All the buttons, row by row
+const rows = [
+  ["√", "π", "^", "⌫"],
+  ["AC", "(", ")", "%"],
+  ["7", "8", "9", "/"],
+  ["4", "5", "6", "*"],
+  ["1", "2", "3", "-"],
+  ["0", ".", "=", "+"],
+];
 
-  // Handle clear button
-  const handleClear = () => {
-    setInput("");
-  };
+export default function App() {
+  const [text, setText] = useState("");
 
-  // Handle backspace (delete last character)
-  const handleBackspace = () => {
-    setInput((prev) => prev.slice(0, -1));
-  };
-
-  // Handle calculation
-  const handleCalculate = () => {
+  // Calculate the answer
+  const calculate = () => {
     try {
-      let calculation = input
-        .replace("π", Math.PI.toString()) // Replace π with Math.PI
-        .replace("√", Math.sqrt.toString()) // Replace √ with Math.sqrt()
-        .replace("%", "/100") // Replace % with /100 for percentage calculation
-        .replace("^", "**"); // Replace ^ with ** for exponentiation (ES6)
+      let exp = text;
+      exp = exp.replace(/π/g, "(" + Math.PI + ")");
+      exp = exp.replace(/\^/g, "**");
+      exp = exp.replace(/%/g, "/100");
 
-      // Evaluate the updated expression
-      const result = eval(calculation);
-      setInput(result.toString());
+      const answer = Function("return " + exp)();
+
+      if (Number.isFinite(answer)) {
+        setText(String(answer));
+      } else {
+        setText("Error");
+      }
     } catch (error) {
-      setInput("Error"); // Handle any error during calculation
+      setText("Error");
     }
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Input Display */}
-      <View style={styles.displayContainer}>
-        <TextInput
-          style={styles.displayText}
-          value={input}
-          placeholder="0"
-          placeholderTextColor="#888"
-          editable={false} // Make input non-editable
-        />
-      </View>
+  // Runs when any button is pressed
+  const handlePress = (label: string) => {
+    if (label === "AC") {
+      setText("");
+    } else if (label === "⌫") {
+      setText(text.slice(0, -1));
+    } else if (label === "=") {
+      calculate();
+    } else {
+      setText(text + label);
+    }
+  };
 
-      {/* Button Rows */}
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={[styles.button, styles.operatorButton]}
-          onPress={() => handleButtonPress("√")}
-        >
-          <Text style={styles.buttonText}>√</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.operatorButton]}
-          onPress={() => handleButtonPress("π")}
-        >
-          <Text style={styles.buttonText}>π</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.operatorButton]}
-          onPress={() => handleButtonPress("^")}
-        >
-          <Text style={styles.buttonText}>^</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.clearButton]}
-          onPress={handleBackspace}
-        >
-          <Text style={styles.buttonText}>⌫</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={[styles.button, styles.clearButton]}
-          onPress={handleClear}
-        >
-          <Text style={styles.buttonText}>AC</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.operatorButton]}
-          onPress={() => handleButtonPress("(")}
-        >
-          <Text style={styles.buttonText}>(</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.operatorButton]}
-          onPress={() => handleButtonPress(")")}
-        >
-          <Text style={styles.buttonText}>)</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.operatorButton]}
-          onPress={() => handleButtonPress("%")}
-        >
-          <Text style={styles.buttonText}>%</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.row}>
-        {[7, 8, 9, "/"].map((item) => (
-          <TouchableOpacity
-            key={item}
-            style={[
-              styles.button,
-              item === "/" ? styles.operatorButton : styles.numberButton,
-            ]}
-            onPress={() => handleButtonPress(item.toString())}
-          >
-            <Text style={styles.buttonText}>{item}</Text>
-          </TouchableOpacity>
+  // Pick the button color
+  const getColor = (label: string) => {
+    if (label === "AC" || label === "⌫") {
+      return COLORS.clear;
+    }
+    if (label === "=") {
+      return COLORS.equal;
+    }
+    if ((label >= "0" && label <= "9") || label === ".") {
+      return COLORS.number;
+    }
+    return COLORS.operator;
+  };
+
+  return (
+    <View style={styles.screen}>
+      <View style={styles.calculator}>
+        <View style={styles.displayBox}>
+          <TextInput
+            style={styles.displayText}
+            value={text}
+            placeholder="0"
+            placeholderTextColor="#64748B"
+            editable={false}
+          />
+        </View>
+
+        {rows.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.row}>
+            {row.map((label) => (
+              <TouchableOpacity
+                key={label}
+                style={[styles.button, { backgroundColor: getColor(label) }]}
+                onPress={() => handlePress(label)}
+              >
+                <Text style={styles.buttonText}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         ))}
-      </View>
-      <View style={styles.row}>
-        {[4, 5, 6, "*"].map((item) => (
-          <TouchableOpacity
-            key={item}
-            style={[
-              styles.button,
-              item === "*" ? styles.operatorButton : styles.numberButton,
-            ]}
-            onPress={() => handleButtonPress(item.toString())}
-          >
-            <Text style={styles.buttonText}>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <View style={styles.row}>
-        {[1, 2, 3, "-"].map((item) => (
-          <TouchableOpacity
-            key={item}
-            style={[
-              styles.button,
-              item === "-" ? styles.operatorButton : styles.numberButton,
-            ]}
-            onPress={() => handleButtonPress(item.toString())}
-          >
-            <Text style={styles.buttonText}>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={[styles.button, styles.numberButton]}
-          onPress={() => handleButtonPress("0")}
-        >
-          <Text style={styles.buttonText}>0</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.numberButton]}
-          onPress={() => handleButtonPress(".")}
-        >
-          <Text style={styles.buttonText}>.</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.equalButton]}
-          onPress={handleCalculate}
-        >
-          <Text style={styles.buttonText}>=</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.operatorButton]}
-          onPress={() => handleButtonPress("+")}
-        >
-          <Text style={styles.buttonText}>+</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#181818", // Darker background for the overall screen
-    padding: 20,
-    justifyContent: "flex-end",
-  },
-  displayContainer: {
-    backgroundColor: "#2E2E2E", // Dark grey background for the display area
-    borderRadius: 15,
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    minHeight: 80,
+    backgroundColor: COLORS.background,
     justifyContent: "center",
-    alignItems: "flex-end",
-    marginTop: 20,
+    alignItems: "center",
+  },
+  calculator: {
+    width: 320,
+    padding: 12,
+  },
+  displayBox: {
+    backgroundColor: COLORS.display,
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    height: 80,
+    justifyContent: "center",
   },
   displayText: {
-    color: "#FFFFFF", // White text for the input
-    fontSize: 45,
+    color: COLORS.displayText,
+    fontSize: 36,
     textAlign: "right",
-    padding: 10,
-    minWidth: 300,
   },
   row: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   button: {
     flex: 1,
-    backgroundColor: "#444444", // Lighter grey background for buttons
-    borderRadius: 25,
-    marginHorizontal: 3,
-    paddingVertical: 25,
+    height: 52,
+    borderRadius: 14,
+    marginHorizontal: 4,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5, // Added shadow for more depth
   },
   buttonText: {
-    color: "#FFFFFF", // White text for button labels
-    fontSize: 29,
+    color: COLORS.buttonText,
+    fontSize: 22,
     fontWeight: "bold",
   },
-  // Add specific button styles for operators and special buttons
-  operatorButton: {
-    backgroundColor: "#293142", // Dark blue for operator buttons like +, -, *, /
-    borderColor: "#1a1a1a",
-    borderWidth: 1,
-  },
-  equalButton: {
-    backgroundColor: "#3B8F24", // Green for the "=" button
-    borderColor: "#1a1a1a",
-    borderWidth: 1,
-  },
-  clearButton: {
-    backgroundColor: "#1A3B84", // Dark Blue for the "AC" clear button
-    borderColor: "#1a1a1a",
-    borderWidth: 1,
-  },
-  numberButton: {
-    backgroundColor: "#4B77D8", // Light Blue for number buttons
-    borderColor: "#1a1a1a",
-    borderWidth: 1,
-  },
 });
-
-export default App;
