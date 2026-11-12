@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
@@ -54,3 +55,7 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+=======
+# calculator-app
+ This is a simple calculator app I made using React Native and Expo.  It can add, subtract, multiply and divide. It also has percentage, power, brackets and π. The AC button clears everything and ⌫ deletes the last digit.  ## How to run 1. Download the project 2. Run `npm install` 3. Run `npx expo start`  Made by Saiprasad Naik
+>>>>>>> f1be0485aa11012b2c36b716161cd98678809dae
