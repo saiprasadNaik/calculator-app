@@ -7,19 +7,6 @@ import {
   View,
 } from "react-native";
 
-// Change any color here
-const COLORS = {
-  background: "#0F172A",
-  display: "#1E293B",
-  displayText: "#F8FAFC",
-  number: "#334155",
-  operator: "#6366F1",
-  clear: "#EF4444",
-  equal: "#22C55E",
-  buttonText: "#FFFFFF",
-};
-
-// All the buttons, row by row
 const rows = [
   ["√", "π", "^", "⌫"],
   ["AC", "(", ")", "%"],
@@ -32,75 +19,76 @@ const rows = [
 export default function App() {
   const [text, setText] = useState("");
 
-  // Calculate the answer
-  const calculate = () => {
+  function getAnswer() {
+    let exp = text;
+
+    exp = exp.replace(/π/g, "3.14159");
+    exp = exp.replace(/√(\d+\.?\d*)/g, "Math.sqrt($1)");
+    exp = exp.replace(/\^/g, "**");
+    exp = exp.replace(/%/g, "/100");
+
     try {
-      let exp = text;
-      exp = exp.replace(/π/g, "(" + Math.PI + ")");
-      exp = exp.replace(/\^/g, "**");
-      exp = exp.replace(/%/g, "/100");
-
-      const answer = Function("return " + exp)();
-
-      if (Number.isFinite(answer)) {
-        setText(String(answer));
+      let ans = Function("return " + exp)();
+      if (isFinite(ans)) {
+        setText(String(ans));
       } else {
         setText("Error");
       }
-    } catch (error) {
+    } catch (e) {
       setText("Error");
     }
-  };
+  }
 
-  // Runs when any button is pressed
-  const handlePress = (label: string) => {
-    if (label === "AC") {
+  function onPress(btn: string) {
+    if (btn === "AC") {
       setText("");
-    } else if (label === "⌫") {
+    } else if (btn === "⌫") {
       setText(text.slice(0, -1));
-    } else if (label === "=") {
-      calculate();
+    } else if (btn === "=") {
+      getAnswer();
     } else {
-      setText(text + label);
+      if (text === "Error") {
+        setText(btn);
+      } else {
+        setText(text + btn);
+      }
     }
-  };
+  }
 
-  // Pick the button color
-  const getColor = (label: string) => {
-    if (label === "AC" || label === "⌫") {
-      return COLORS.clear;
+  function getColor(btn: string) {
+    if (btn === "AC" || btn === "⌫") {
+      return "red";
+    } else if (btn === "=") {
+      return "green";
+    } else if ("0123456789.".includes(btn)) {
+      return "#334155";
+    } else {
+      return "#6366F1";
     }
-    if (label === "=") {
-      return COLORS.equal;
-    }
-    if ((label >= "0" && label <= "9") || label === ".") {
-      return COLORS.number;
-    }
-    return COLORS.operator;
-  };
+  }
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.calculator}>
-        <View style={styles.displayBox}>
+    <View style={styles.container}>
+      <View style={styles.box}>
+        <View style={styles.display}>
           <TextInput
             style={styles.displayText}
             value={text}
             placeholder="0"
-            placeholderTextColor="#64748B"
+            placeholderTextColor="gray"
             editable={false}
           />
         </View>
 
-        {rows.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
-            {row.map((label) => (
+        {rows.map((row, i) => (
+          <View key={i} style={styles.row}>
+            {row.map((btn) => (
               <TouchableOpacity
-                key={label}
-                style={[styles.button, { backgroundColor: getColor(label) }]}
-                onPress={() => handlePress(label)}
+                key={btn}
+                style={[styles.btn, { backgroundColor: getColor(btn) }]}
+                onPress={() => onPress(btn)}
               >
-                <Text style={styles.buttonText}>{label}</Text>
+                <Text style={styles.btnText}>{btn}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -111,18 +99,18 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: "#0F172A",
     justifyContent: "center",
     alignItems: "center",
   },
-  calculator: {
+  box: {
     width: 320,
     padding: 12,
   },
-  displayBox: {
-    backgroundColor: COLORS.display,
+  display: {
+    backgroundColor: "#1E293B",
     borderRadius: 15,
     paddingHorizontal: 12,
     marginBottom: 12,
@@ -130,7 +118,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   displayText: {
-    color: COLORS.displayText,
+    color: "white",
     fontSize: 36,
     textAlign: "right",
   },
@@ -138,7 +126,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginBottom: 8,
   },
-  button: {
+  btn: {
     flex: 1,
     height: 52,
     borderRadius: 14,
@@ -146,8 +134,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  buttonText: {
-    color: COLORS.buttonText,
+  btnText: {
+    color: "white",
     fontSize: 22,
     fontWeight: "bold",
   },
